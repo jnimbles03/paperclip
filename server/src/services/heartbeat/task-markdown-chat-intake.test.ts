@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPaperclipTaskMarkdown } from "./task-markdown.js";
+import { buildPaperclipTaskMarkdown } from "./apply-chat-intake-markdown.js";
 import { CHAT_INTAKE_FILE_CARD_DIRECTIVE } from "../chat-intake-report.js";
 
 describe("chat intake prompt injection", () => {
