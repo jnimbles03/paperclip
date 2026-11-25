@@ -35,6 +35,9 @@ export type ChatIntakeReport = {
 export const CHAT_INTAKE_CREATE_TASK_DENIAL =
   "Post the proposed card title and a one-line summary as a comment in this conversation before create_task. That comment must include the same title you then pass to create_task.";
 
+export const CHAT_INTAKE_FILE_CARD_DIRECTIVE =
+  'When the person asks you to file, write up, or open a card, ticket, or issue from "what I just reported", "this", or the report they just made, file only the platform-resolved Chat intake report in this prompt when that section is present. That report is the message they replied to, or otherwise their latest report in this conversation — never a screenshot or attachment from elsewhere in the conversation, and never a file chosen from list_task_attachments. Do not scan older messages or the conversation\'s full attachment list to pick a different screenshot. Before you create the card, post the proposed title and a one-line summary as a comment in this conversation. create_task is refused until that comment exists and contains the same title you then pass to create_task.';
+
 const FILE_CARD_NAME = /\b(card|ticket|issue)\b/;
 const FILE_CARD_ACTION = /\b(file|filed|filing|write up|write-up|open|create|make)\b/;
 const FILE_CARD_PRIOR =

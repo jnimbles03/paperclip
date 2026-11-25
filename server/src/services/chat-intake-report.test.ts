@@ -63,6 +63,13 @@ function uatAfterHoursThread(options?: { replyToAfterHours?: boolean }): ChatInt
 }
 
 describe("chat intake report resolution", () => {
+  it("tells chat to file from the resolved report and read the title back first", () => {
+    expect(CHAT_INTAKE_FILE_CARD_DIRECTIVE).toContain("file only the platform-resolved Chat intake report");
+    expect(CHAT_INTAKE_FILE_CARD_DIRECTIVE).toContain("never a file chosen from list_task_attachments");
+    expect(CHAT_INTAKE_FILE_CARD_DIRECTIVE).toContain("post the proposed title and a one-line summary as a comment in this conversation");
+    expect(CHAT_INTAKE_FILE_CARD_DIRECTIVE).toContain("create_task is refused until that comment exists and contains the same title");
+  });
+
   it("recognizes a file-card request that points at the report just made", () => {
     expect(isFileCardRequest("write up a new card with what I just reported")).toBe(true);
     expect(isFileCardRequest("file this as a ticket")).toBe(true);
