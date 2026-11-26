@@ -29,6 +29,8 @@ import type { NativeRuntimeContextSnapshot } from "../../vendor/paperclip-runner
 import { assertCanManageIssueMonitor, eligibleIssueMonitorWait, prepareIssueMonitorUpdate, setTaskMonitorSchema, summarizeIssueMonitor } from "../issue-monitors.js";
 import { readTaskQuestionContext } from "../issue-question-context.js";
 import { isConversation } from "../agent-conversations.js";
+import { chatIntakeCreateTaskDenial } from "../chat-intake-report.js";
+import { loadChatIntakeComments } from "../chat-intake-report-load.js";
 import { setIssueTitle } from "../issue-title.js";
 import { externalObjectService } from "../external-objects.js";
 import { instanceSettingsService } from "../instance-settings.js";
@@ -2253,6 +2255,17 @@ export class PaperclipRunnerToolAuthority {
             assigneeUserId: existingChild.assigneeUserId,
           },
         };
+      }
+      if (isConversation(context.issue)) {
+        const intakeComments = await loadChatIntakeComments(tx, {
+          companyId: this.binding.companyId,
+          issueId: this.binding.issueId,
+        });
+        const intakeDenial = chatIntakeCreateTaskDenial({
+          comments: intakeComments,
+          proposedTitle: requiredString(input.title),
+        });
+        if (intakeDenial) throw badRequest(intakeDenial);
       }
       let deduplicated = false;
       const issueId = randomUUID();

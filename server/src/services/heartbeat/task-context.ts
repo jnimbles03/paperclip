@@ -6,6 +6,8 @@ import { AUTOMATION_CONVERSATION_ORIGIN_KIND, FAST_RESPONSE_AGENT_GUIDANCE, ONBO
 import type { PaperclipTurnContext } from "@paperclipai/adapter-utils/server-utils";
 import { parseObject } from "../../adapters/utils.js";
 import { isConversation } from "../agent-conversations.js";
+import { isFileCardRequest } from "../chat-intake-report.js";
+import { resolveLoadedChatIntakeReport } from "../chat-intake-report-load.js";
 import { chatCompletionInstruction } from "../chat-completion-delivery.js";
 import { getConversationConfirmationContext } from "../conversation-confirmation-context.js";
 import { buildExecutionContinuation } from "../execution-continuation.js";
@@ -23,7 +25,7 @@ import { caseExecutionMarkdown, getCaseExecutionContext } from "../case-context.
 import type { TrustPresetResolution } from "../trust-preset-resolver.js";
 import { liveVoiceExecutionGuidance } from "../voice/voice-execution-guidance.js";
 import { buildPaperclipWakePayload, ConfigurationIncompleteFailure, readHeartbeatWakeComments, PAPERCLIP_WAKE_PAYLOAD_KEY, type createHeartbeatRunPreparation } from "./run-preparation.js";
-import { buildPaperclipTaskMarkdown } from "./task-markdown.js";
+import { buildPaperclipTaskMarkdown } from "./apply-chat-intake-markdown.js";
 import { deriveCommentId, extractWakeCommentIds } from "../../modules/run-dispatch/index.js";
 import { workspacePreferenceService } from "../workspace-preferences.js";
 
@@ -262,8 +264,17 @@ export async function prepareHeartbeatTaskContext(db: Db, input: HeartbeatTaskCo
   const [chatCompany] = issueRef?.conversationAgentId && !issueRef.identifier
     ? await db.select({ issuePrefix: companies.issuePrefix }).from(companies).where(eq(companies.id, agent.companyId))
     : [];
+  const fileCardWake = [...safeWakeComments].reverse().find((comment) => isFileCardRequest(comment.body));
+  const chatIntakeReport = issueRef && isConversation(issueContext) && fileCardWake
+    ? await resolveLoadedChatIntakeReport(db, {
+        companyId: agent.companyId,
+        issueId: issueRef.id,
+        requestCommentId: fileCardWake.id,
+      })
+    : null;
   const taskMarkdownInput = {
     companyPrefix: chatCompany?.issuePrefix,
+    chatIntakeReport,
     coordinatorWorkspace: Boolean(coordinatorWorkspace),
     personTimeZone,
     conferenceRoomEnabled: experimentalInstanceSettings.enableConferenceRoomChat === true,
